@@ -1,7 +1,7 @@
 ---
 name: exam-prep
 aliases: [cram, drill]
-version: 0.4.0
+version: 0.5.0
 description: |
   Empirical exam prep skill. Fuses past-paper frequency analysis with lecturer's
   emphasis on a small course-specific corpus (3-7 past papers + lecturer review)
@@ -33,10 +33,27 @@ allowed-tools:
   - Agent
 ---
 
-# /exam-prep — Empirical Exam Prep Skill (v0.4)
+# /exam-prep — Empirical Exam Prep Skill (v0.5)
 
 You are an exam-prep specialist. Apply data-driven prioritization on past papers
 and lecturer materials to produce drill-ready study artifacts.
+
+## What changed in v0.5
+
+Five P0 fixes from the SC4023 (May 2026) dry-run:
+
+1. **Codex-student audit gate** (Step 10.5, new) — auto-spawns codex with
+   student persona after PDF generation; ships only when score ≥ 8.0/10.
+   See `docs/ALGORITHM_student_audit.md`.
+2. **Narrator-pollution detector** — strips meta-voice ("this demonstrates…",
+   "as we saw earlier…") from drill packs before PDF render.
+3. **EXAM_METADATA gate** — Turn 1 mandatorily collects + re-confirms exam
+   datetime; never inherits from prior runs. See `docs/ARCH_dialogue.md`.
+4. **Master-plan SELF-CHECK** — reverse-counts `time_to_exam = exam_dt - now()`,
+   never forward-additive. Refuses to render if anchor missing.
+5. **One-canonical-answer rule** — refuses to ship two different "canonical"
+   answers to the same past-paper question; promotes one, demotes others to
+   "alternative approach" sections.
 
 **Documentation contract:** This file (`SKILL.md`) is the authoritative entry
 point. Detailed specs are split across `workflow/WORKFLOW_STEPS.md`, `docs/`,
@@ -156,6 +173,11 @@ Summary (full details in `workflow/WORKFLOW_STEPS.md`):
 8. **PYP full-answer packs** — fan out parallel
 9. **Coverage audit** — `_process/analysis/coverage_audit.md`
 10. **INDEX + master plan + cheatsheet + render PDFs**
+10.5. **CODEX-STUDENT-AUDIT** (NEW in v0.5) — Auto-spawn codex with student
+    persona, parse score, gate at ≥ 8/10, dispatch fix-loop if below (cap 3
+    rounds, $5 hard cost cap). Skip with WARN if codex CLI/auth missing.
+    Full spec: `docs/ALGORITHM_student_audit.md`. Closes the v0.4 systemic
+    gap where the skill self-declared DONE without external validation.
 
 ## File structure (canonical)
 
@@ -177,6 +199,8 @@ Summary (full details in `workflow/WORKFLOW_STEPS.md`):
     │   ├── red_items_audit.md
     │   ├── coverage_audit.md
     │   └── _topic_vocab.md
+    ├── audits/                    ← NEW in v0.5 (Step 10.5 output)
+    │   └── round_*_audit.md       (per-round codex-student verdict + score)
     └── papers/
         ├── PYP_AYxxxx.md
         └── img_*.png
@@ -274,8 +298,11 @@ Full archetype detection logic: `docs/ARCH_scope.md`.
 
 ## Reference implementation
 
-Built and validated on **NTU SC4003 Intelligent Agents (AY2425)** in April 2026.
-The student's exam-prep folder is the gold-standard reference at:
+Validated on **NTU SC4003 + SC4023** (with 3-round codex-student audit, scores
+6.2 → 7.5 → 8.1+). Built originally on SC4003 Intelligent Agents (AY2425) in
+April 2026; v0.5 audit gate added after SC4023 dry-run in May 2026.
+
+The student's SC4003 exam-prep folder is the gold-standard reference at:
 `/Users/haoyangpang/Desktop/NTU study/Y4S2/SC4003 Intelligent Agents/exam-prep/`
 
 NO grade prediction is offered. The skill produces a study plan, not a score forecast.

@@ -46,9 +46,30 @@ Full archetype routing logic: `docs/ARCH_scope.md`.
 
 ## Validated on
 
-- **NTU SC4003 — Intelligent Agents (AY2425, S2)** — reference implementation, 5 past papers (AY1819 / AY2021 / AY2122 / AY2223 / AY2324), used as primary study material through to exam day.
+- **NTU SC4003 — Intelligent Agents (AY2425, S2)** — reference impl, 5 PYPs, real exam pass (Apr 30 2026).
+- **NTU SC4023 — Big Data Management (AY2425, S2)** — full Mode A pipeline, 3 PYPs + 7 lecture PDFs, 3-round codex-student audit (6.2 → 7.5 → 8.1 score progression, 84% pass probability).
 
-Other STEM closed-book + past-paper-rich courses are **expected to work** but not yet validated.
+> **Note on validation:** "validated" here means "produced usable materials + student passed or is expected to pass." It does NOT mean "zero defects." The v0.5 codex-student-audit gate (`docs/ALGORITHM_student_audit.md`) is the empirical defect catcher — without it, the SC4003 run would also have shipped with similar latent defects. Your mileage varies by course; please open issues with bug reports.
+
+Other STEM closed-book + past-paper-rich courses are **expected to work** but not yet independently validated.
+
+---
+
+## What changed in v0.5 (May 2026)
+
+After running v0.4 on SC4023 and auditing the output via codex-as-student, 6 P0 defect classes were discovered. v0.5 encodes fixes for each:
+
+| Defect class found | v0.5 fix |
+|--------------------|----------|
+| Wrong exam time silently inherited from prior run | EXAM_METADATA gate in Turn 1 (`docs/ARCH_dialogue.md`) — never inherit, always re-confirm |
+| Worked-answer agents punted with "see lecturer" | No-punt rule in `templates/AGENT_PROMPTS_LIBRARY.md` Prompt 6/7 |
+| Narrator commentary leaked into final docs ("Wait —", "Hmm,") | Forbidden-pattern detector in `bin/check_pollution.sh` + Prompt 6/7 hard constraint |
+| MapReduce variables undefined in pseudocode | Variable-consistency check in audit gate |
+| PYP answers self-contradicting | ONE canonical answer rule in Prompt 7 |
+| Master plan numbering/arithmetic drift | SELF-CHECK section in `templates/TEMPLATE_master_plan.md` + `bin/check_master_plan.sh` |
+| **No self-validation gate after PDF generation** | **NEW Step 10.5: codex-student-audit** (`docs/ALGORITHM_student_audit.md`) — auto-runs codex with student persona, score gate ≥ 8/10, fix-loop cap 3 rounds |
+
+Score deltas observed on SC4023 across audit rounds: **6.2 → 7.5 → 8.1+** (+1.9). Pass probability: **78% → 84%**.
 
 ---
 
@@ -80,7 +101,7 @@ Full audit: `docs/EDGE_CASES.md` (22 cases).
 
 ## Cost
 
-~$1.30–$4.00 per invocation (Claude Sonnet 4.6, with/without prompt caching). Auto-degrades at >$5, hard-fails at >$8. Full breakdown: `docs/COST_BUDGET.md`.
+~$1.80–$5.50 per invocation (Claude Sonnet 4.6, with/without prompt caching). v0.5 adds the codex-student-audit gate, which contributes ~$0.30–$0.80 per round (max 3 rounds = ~$1–$2.40 added cost over v0.4's ~$1.30–$4.00 base). Auto-degrades at >$5, hard-fails at >$8. Full breakdown: `docs/COST_BUDGET.md`.
 
 ---
 

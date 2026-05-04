@@ -346,6 +346,31 @@ Produce a topic pack using TEMPLATE_topic_pack.md format:
 
 Length target: 200-400 lines. Output as {{PACKS_DIR}}/{{NN_TOPIC_FILENAME}}.md.
 
+## HARD CONSTRAINTS (v0.5 — auto-fail if violated)
+
+<!-- Added v0.5 after SC4023 audit found 5 P0 violations of this rule in PYP_AY2122 Q4(c) and PYP_AY2223 Q5(b/c/d). -->
+
+### No-narrator rule
+Final output must read as a SETTLED answer document, not a thinking process.
+FORBIDDEN PATTERNS (auto-fail; the orchestrator will respawn the agent):
+- "Wait —" / "Wait," / "Hmm," / "let me re-derive" / "let me redo"
+- "I'll commit to" / "I think" / "I realize" / "actually,"
+- "raise your hand" / "tell the lecturer"
+- "Tedious" / "see lecturer's full" / "Approximate answer" / "Solution sketch"
+- "This gets messy" / "It is genuinely impossible" / "closest feasible"
+- Any other prose that signals work-in-progress mid-derivation
+
+If content is genuinely uncertain, use ONE of these standardized markers:
+- 🚨 OCR-AMBIGUOUS: [committed best interpretation] (alternative: [single alternative])
+- 🚨 OCR-NOTE: [single committed interpretation, medium confidence]
+Then provide ONE definitive answer. Never narrate the uncertainty in prose.
+
+### No-punt rule
+"see lecturer's notes" / "see official solution" / "see Tut N solutions" is FORBIDDEN
+as a substitute for an actual worked answer. If the question is structurally hard,
+provide best-effort reasoning + mark scheme breakdown + flag with 🚨 HARD-Q: marker.
+Punting is auto-fail.
+
 Report back: # of drills written, target speed-per-problem, and the
 hardest pitfall the student is likely to hit.
 ```
@@ -388,6 +413,42 @@ Output: {{PACKS_DIR}}/pyp_answers/PYP_{{PAPER_YEAR}}_FULL_ANSWERS.md.
 
 Quality bar: every numerical answer must show every algebraic step.
 "Show your working" is what gets the partial-credit marks.
+
+## HARD CONSTRAINTS (v0.5 — auto-fail if violated)
+
+<!-- Added v0.5 after SC4023 audit found 5 P0 violations of this rule in PYP_AY2122 Q4(c) and PYP_AY2223 Q5(b/c/d). -->
+
+### No-narrator rule
+Final output must read as a SETTLED answer document, not a thinking process.
+FORBIDDEN PATTERNS (auto-fail; the orchestrator will respawn the agent):
+- "Wait —" / "Wait," / "Hmm," / "let me re-derive" / "let me redo"
+- "I'll commit to" / "I think" / "I realize" / "actually,"
+- "raise your hand" / "tell the lecturer"
+- "Tedious" / "see lecturer's full" / "Approximate answer" / "Solution sketch"
+- "This gets messy" / "It is genuinely impossible" / "closest feasible"
+- Any other prose that signals work-in-progress mid-derivation
+
+If content is genuinely uncertain, use ONE of these standardized markers:
+- 🚨 OCR-AMBIGUOUS: [committed best interpretation] (alternative: [single alternative])
+- 🚨 OCR-NOTE: [single committed interpretation, medium confidence]
+Then provide ONE definitive answer. Never narrate the uncertainty in prose.
+
+### No-punt rule
+"see lecturer's notes" / "see official solution" / "see Tut N solutions" is FORBIDDEN
+as a substitute for an actual worked answer. If the question is structurally hard,
+provide best-effort reasoning + mark scheme breakdown + flag with 🚨 HARD-Q: marker.
+Punting is auto-fail.
+
+### ONE canonical answer rule (Prompt 7 specific)
+Each sub-question gets exactly ONE canonical answer. If the answer requires multiple
+cases (e.g., "if X then ... else ..."), that's fine — but do NOT enumerate alternative
+attempts (16-insert, 17-insert, 18-insert, ...). Pick the best, present it cleanly.
+
+If the question is structurally impossible under stated constraints:
+1. State impossibility in 1 declarative sentence
+2. Provide ONE closest-feasible solution
+3. Wrap exam-day strategy in a `📝 EXAM-DAY SCRIPT:` callout (separate from answer body)
+4. Do NOT enumerate alternatives in the answer body
 
 Report back: total marks tabulated, # of sub-parts, and which sub-part
 is the most likely to recur (cross-reference Section 3 of past-paper

@@ -1,6 +1,10 @@
 # {{COURSE_CODE}} Master Cramming Plan (T-{{HOURS_TO_EXAM}}h)
 
 <!--
+  v0.5: SELF-CHECK section is mandatory. SC4023 incident: subtitle claimed
+  '3 cold mocks / 16h study' but actual schedule had 2 mocks / 15.75h.
+  Mismatch caused student trust erosion.
+
   Hour-by-hour study schedule. Different from the index; this is the
   "what do I do right now?" file.
 
@@ -196,6 +200,23 @@ eat your FOCUSED_H budget:
 
 If you want any of these, do them OUTSIDE the FOCUSED_H budget (during
 meals or buffer slots), or skip entirely.
+
+---
+
+## SELF-CHECK (v0.5 — must pass before delivery)
+
+Generator: compute these values from the day-by-day tables above and verify
+matching the subtitle/header claims. Any mismatch = patch + re-verify.
+
+| Check | Subtitle/Header claim | Actual sum from tables | Pass? |
+|-------|----------------------|------------------------|-------|
+| Total study hours | {SUBTITLE_HOURS} | {SUM_FROM_DAYS}h | ✓/✗ |
+| Cold mock count | {SUBTITLE_MOCK_COUNT} | {COUNT_OF_COLD_MOCK_HEADERS} | ✓/✗ |
+| Cold mock numbering | contiguous 1..N | {OBSERVED_NUMBERS} | ✓/✗ |
+| Exam time consistency | {SUBTITLE_EXAM_TIME} | matches body + 00_INDEX | ✓/✗ |
+| Day count | {SUBTITLE_DAYS} | {COUNT_OF_DAY_HEADERS} | ✓/✗ |
+
+If ANY check fails: regenerate the inconsistent section, do NOT ship the plan.
 
 <!-- ============ EXAMPLE FILL (REMOVE WHEN INSTANTIATING) ===================
 - WALL_HOURS = 30

@@ -15,6 +15,70 @@ self-contained: it only references inputs already collected in earlier turns.
 **Goal of this turn:** gather every variable Turn 2 needs to compute total focused
 study hours. Nothing is derived in Turn 1; we only collect.
 
+### EXAM_METADATA — REQUIRED FIRST BLOCK (v0.5)
+
+**Before any other Turn 1 question**, the skill MUST collect and persist a
+canonical `EXAM_METADATA` block. This block is the single source of truth for
+all downstream time math (master plan, Step 10.5 audit, deadline gating).
+
+**Required fields:**
+
+| Field | Format | Notes |
+|-------|--------|-------|
+| `date` | `YYYY-MM-DD` | The exam day. NEVER inherit from prior runs. |
+| `start_time` | `HH:MM` (24-hour) | Local time the exam begins. |
+| `duration` | `HH:MM` | Exam length, e.g. `02:30`. |
+| `venue` | free text (optional) | e.g. `LT19, NTU North Spine`. |
+| `format` | enum: `closed-book` / `open-book` / `take-home` | Routes to adapter. |
+| `total_marks` | integer | Used by master-plan time-budget per mark. |
+
+#### NEVER INHERIT rule (v0.5, P0)
+
+**Even if a prior run's metadata exists in `.context/`, memory, or the user's
+recent SKILL invocations, ALWAYS re-confirm `exam_datetime` in the current
+invocation.**
+
+Cite the SC4023 incident: in May 2026 the skill silently inherited SC4003's
+`17:00` exam time when the student kicked off SC4023 prep. The generated master
+plan would have caused the student to miss the actual `09:00` exam by 8 hours.
+The fix is mandatory re-confirmation, not "auto-fill from last run".
+
+Implementation:
+
+```python
+# WRONG (v0.4 bug):
+exam_datetime = context.get("exam_datetime") or ask_user("exam_datetime?")
+
+# RIGHT (v0.5):
+exam_datetime = ask_user("exam_datetime?", prefill=None)
+# If prior context exists, surface as a warning, not a default:
+if context.get("exam_datetime"):
+    print(f"WARN: prior run had {context['exam_datetime']}. "
+          f"Confirm current: {exam_datetime}.")
+```
+
+#### Validation rule — reverse-counting only
+
+Master-plan generation (Step 9) MUST compute time budget by reverse-counting:
+
+```python
+time_to_exam = exam_datetime - now()   # CORRECT
+```
+
+NOT by forward-additive scheduling:
+
+```python
+# FORBIDDEN — caused SC4023 incident
+schedule_end = now() + sum(planned_block_hours)
+```
+
+Step 9 enforces this: if `time_to_exam` is missing or negative, refuse to
+render the master plan and emit `ERROR: EXAM_METADATA gate failed`. Step 10.5
+(codex-student audit) will additionally flag any pack referencing dates
+inconsistent with the EXAM_METADATA block.
+
+---
+
 **Six inputs to collect.** Send as a single `AskUserQuestion` payload (six questions,
 each independent, no forward refs):
 
