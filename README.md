@@ -1,5 +1,7 @@
 # /exam-prep
 
+![version](https://img.shields.io/badge/version-0.5.0-blue) ![tested-on](https://img.shields.io/badge/tested--on-NTU%20SC4003%20%2B%20SC4023-green) ![audit-gate](https://img.shields.io/badge/audit--gate-codex--student-orange) ![license](https://img.shields.io/badge/license-MIT-lightgrey)
+
 Past-paper frequency analysis + lecturer emphasis fusion for closed-book written exams.
 
 > **Single source of truth: [`SKILL.md`](./SKILL.md).** This README is for humans browsing the repo on GitHub. The skill execution contract, workflow, dependency tiers, taxonomy, dialogue logic, and validation rules all live in `SKILL.md`. If you find a difference between this README and `SKILL.md`, **`SKILL.md` wins**.
