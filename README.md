@@ -1,8 +1,10 @@
-# /exam-prep
+# /exam-prep (临时抱佛脚)
 
-![version](https://img.shields.io/badge/version-0.5.0-blue) ![tested-on](https://img.shields.io/badge/tested--on-NTU%20SC4003%20%2B%20SC4023-green) ![audit-gate](https://img.shields.io/badge/audit--gate-codex--student-orange) ![license](https://img.shields.io/badge/license-MIT-lightgrey)
+![version](https://img.shields.io/badge/version-0.6.0-blue) ![tested-on](https://img.shields.io/badge/tested--on-NTU%20SC4003%20%2B%20SC4023-green) ![audit-gate](https://img.shields.io/badge/audit--gate-codex--student%20%2B%20primer-orange) ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
 Past-paper frequency analysis + lecturer emphasis fusion for closed-book written exams.
+
+> **临时抱佛脚 skill** — past-paper frequency analysis + lecturer emphasis fusion + zero-baseline primer for closed-book written exams.
 
 > **Single source of truth: [`SKILL.md`](./SKILL.md).** This README is for humans browsing the repo on GitHub. The skill execution contract, workflow, dependency tiers, taxonomy, dialogue logic, and validation rules all live in `SKILL.md`. If you find a difference between this README and `SKILL.md`, **`SKILL.md` wins**.
 
@@ -21,10 +23,10 @@ cp -r exam-prep ~/.claude/skills/
 Then invoke any of these aliases:
 
 ```
-/exam-prep    /cram    /drill
+/exam-prep    /cram    /drill    /临时抱佛脚
 ```
 
-(All three are equivalent triggers.)
+(All four are equivalent triggers. `临时抱佛脚` — lit. "hugging Buddha's feet at the last minute" — is the idiomatic Chinese for cramming, and the skill's natural Chinese name.)
 
 ---
 
@@ -54,6 +56,20 @@ Full archetype routing logic: `docs/ARCH_scope.md`.
 > **Note on validation:** "validated" here means "produced usable materials + student passed or is expected to pass." It does NOT mean "zero defects." The v0.5 codex-student-audit gate (`docs/ALGORITHM_student_audit.md`) is the empirical defect catcher — without it, the SC4003 run would also have shipped with similar latent defects. Your mileage varies by course; please open issues with bug reports.
 
 Other STEM closed-book + past-paper-rich courses are **expected to work** but not yet independently validated.
+
+---
+
+## What changed in v0.6 (May 2026)
+
+After running v0.5 on SC4023 again (round-2 audit, T-1 day before exam, May 6 2026), the student opened the drill packs and got stuck at Get cost / fence pointer / Bloom filter mechanics. The packs assumed database/systems baseline knowledge the student didn't have. v0.5's codex-audit gate would have caught this *eventually*, but only after expensive fix-loops. v0.6 bakes the lesson into the workflow:
+
+| What's new in v0.6 | Detail |
+|--------------------|--------|
+| **Mandatory primer-from-zero pack** | New `00_PRIMER_FROM_ZERO.md` (~5-9k words). Workflow Step 7.5 spawns a primer-writer agent (`templates/AGENT_PROMPTS_LIBRARY.md` Prompt 12) before any drill pack is generated. Every term bold-defined on first use, plain English, ASCII diagrams, side-by-side comparisons for trade-offs. The first file the student reads — every drill pack assumes its background. |
+| **Chinese alias `临时抱佛脚`** | `/临时抱佛脚` triggers identically to `/exam-prep`. The skill's natural Chinese name (lit. "hugging Buddha's feet at the last minute" — idiom for cramming). |
+| **Reference impl** | SC4023 primer at `~/Desktop/NTU study/Y4S2/SC4023 Big Data Management/exam-prep/ipad_topic_packs/00_PRIMER_FROM_ZERO.pdf`. 7350 words, 131KB PDF, 9 modules (5Vs / disk mechanics / memory hierarchy / sorting / row vs column / MapReduce / NoSQL / LSM full / reading order). Pollution check: CLEAN. |
+
+**Why:** SC4023 round-2 audit found student stuck at "what is I/O?", "what is fence pointer?", "what does flush mean?" — drill packs assumed knowledge they didn't have. Primer fixes the gap.
 
 ---
 

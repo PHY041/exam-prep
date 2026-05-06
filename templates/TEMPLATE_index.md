@@ -12,7 +12,11 @@ header-includes:
 ---
 
 <!--
-  Top-level index. The first PDF a student opens.
+  v0.6 note: 00_PRIMER_FROM_ZERO.pdf must appear FIRST in the study order list
+  (above this INDEX file). It is the conceptual foundation; the INDEX is the
+  navigation layer. Order on the iPad: PRIMER → INDEX → drill packs.
+
+  Top-level index. The first navigation PDF a student opens (after the primer).
   Anchors: exam logistics, predicted question structure, study order, skip list,
   exam-day playbook, packing list. One file. ~200 lines.
 
@@ -63,6 +67,7 @@ header-includes:
 
 | # | Pack | Topic | Marks worth | Time | Priority |
 |---|------|-------|-------------|------|----------|
+| **00** | **PRIMER_FROM_ZERO** | **Read first.** From-scratch concept primer (~5-9k words, ~30-40 pages). Bridges database/systems baseline. | — (foundation) | ~90-120 min | ⭐⭐⭐ |
 | **00** | INDEX | This file (TOC + study plan) | — | — | — |
 | **01** | {{PACK_01_NAME}} | {{PACK_01_DESC}} | {{PACK_01_MARKS}} | {{PACK_01_TIME}} | {{PACK_01_PRIORITY}} |
 | ... | ... | ... | ... | ... | ... |

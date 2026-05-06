@@ -1,7 +1,7 @@
 ---
 name: exam-prep
-aliases: [cram, drill]
-version: 0.5.0
+aliases: [cram, drill, 临时抱佛脚]
+version: 0.6.0
 description: |
   Empirical exam prep skill. Fuses past-paper frequency analysis with lecturer's
   emphasis on a small course-specific corpus (3-7 past papers + lecturer review)
@@ -18,8 +18,9 @@ description: |
   V1 NOT SUPPORTED: live coding (redirect to /investigate), essay-heavy humanities
   (V2 sister skill /essay-prep planned).
 
-  Triggers: '/exam-prep', '/cram', '/drill', 'exam prep', 'past paper analysis',
-  'study for exam', '考试复习', '过去试卷分析'.
+  Triggers: '/exam-prep', '/cram', '/drill', '/临时抱佛脚', 'exam prep',
+  'past paper analysis', 'study for exam', '考试复习', '过去试卷分析',
+  '临时抱佛脚'.
 allowed-tools:
   - Read
   - Write
@@ -33,10 +34,41 @@ allowed-tools:
   - Agent
 ---
 
-# /exam-prep — Empirical Exam Prep Skill (v0.5)
+# /exam-prep — Empirical Exam Prep Skill (v0.6)
+
+Also known as **临时抱佛脚** (lit. "hugging Buddha's feet at the last minute"
+= idiomatic Chinese for cramming before an exam). `/exam-prep`, `/cram`,
+`/drill`, and `/临时抱佛脚` are equivalent triggers.
 
 You are an exam-prep specialist. Apply data-driven prioritization on past papers
-and lecturer materials to produce drill-ready study artifacts.
+and lecturer materials to produce drill-ready study artifacts — and the
+zero-baseline primer that makes those artifacts readable.
+
+## What changed in v0.6
+
+Two additions, both forced by the SC4023 round-2 student audit (May 6 2026,
+T-1 day before exam):
+
+1. **Mandatory primer-from-zero pack** (Step 7.5, new) — generates
+   `00_PRIMER_FROM_ZERO.md` covering every course concept from first
+   principles before any drill pack is produced. Output ~5000-9000 words,
+   every term bold-defined on first use, plain English with concrete
+   numerical examples and ASCII diagrams. **The first file the student
+   should read.** Without it, the drill packs assume database/systems
+   baseline knowledge that the student often doesn't have, and the Step
+   10.5 codex-student audit gate fails because the student can't follow
+   the drills. See `templates/AGENT_PROMPTS_LIBRARY.md` Prompt 12.
+2. **Chinese alias `临时抱佛脚`** added to frontmatter aliases. The
+   skill's actual Chinese name. `/临时抱佛脚` triggers identically to
+   `/exam-prep`.
+
+Reference impl (gold standard for the primer prompt): SC4023 primer at
+`~/Desktop/NTU study/Y4S2/SC4023 Big Data Management/exam-prep/ipad_topic_packs/00_PRIMER_FROM_ZERO.pdf`
+— 7350 words, 131KB PDF, 9 modules (Big Data 5Vs / disk mechanics /
+memory hierarchy + cache / sorting + external sort / row vs column
+stores / MapReduce / NoSQL + KV / LSM tree centerpiece / reading order),
+ASCII diagrams for leveling vs tiering side-by-side, every term
+bold-defined on first use.
 
 ## What changed in v0.5
 
@@ -158,7 +190,7 @@ These exceptions are named, bounded, and known. No other dialogs.
 10-step canonical workflow runs sequentially with parallelism in waves 1, 4, 6.
 See `workflow/WORKFLOW_STEPS.md` for full details with input/output contracts.
 
-## Canonical 10-step workflow (single source of truth = workflow/WORKFLOW_STEPS.md)
+## Canonical 11-step workflow (single source of truth = workflow/WORKFLOW_STEPS.md)
 
 Summary (full details in `workflow/WORKFLOW_STEPS.md`):
 
@@ -170,6 +202,19 @@ Summary (full details in `workflow/WORKFLOW_STEPS.md`):
 5. **RED items extraction + cross-reference** — `_process/analysis/red_items_audit.md`
 6. **Verbatim repeats pack** — Pack 01 (highest ROI)
 7. **Per-topic drill packs** — fan out parallel
+7.5. **PRIMER-FROM-ZERO pack generation** (NEW in v0.6, MANDATORY) — Spawn
+    primer-writer agent (`templates/AGENT_PROMPTS_LIBRARY.md` Prompt 12)
+    to produce `00_PRIMER_FROM_ZERO.md` covering all course concepts from
+    first principles. Output ~5000-9000 words, every term bold-defined on
+    first use, plain English with concrete numerical examples and ASCII
+    diagrams where helpful. **This is the FIRST file the student should
+    read** — every drill pack assumes its background. Without the primer
+    pack, the audit gate (Step 10.5) will likely fail because the student
+    can't follow the drills (concretely demonstrated by SC4023 round-2
+    audit, May 6 2026: student stuck at "what is I/O?" / "what is fence
+    pointer?" / "what does flush mean?" before primer was hand-written).
+    Render PDF with same pandoc + xelatex flags as other packs. Run
+    `bin/check_pollution.sh` on output before render.
 8. **PYP full-answer packs** — fan out parallel
 9. **Coverage audit** — `_process/analysis/coverage_audit.md`
 10. **INDEX + master plan + cheatsheet + render PDFs**
@@ -184,6 +229,7 @@ Summary (full details in `workflow/WORKFLOW_STEPS.md`):
 ```
 {course-folder}/exam-prep/
 ├── ipad_topic_packs/           ← user-facing
+│   ├── 00_PRIMER_FROM_ZERO.pdf      ← READ FIRST (NEW v0.6, mandatory)
 │   ├── 00_INDEX_AND_STUDY_ORDER.pdf
 │   ├── 01_VERBATIM_REPEATS_MEMORIZE.pdf
 │   ├── 02_{TOPIC1}_DRILL.pdf ... N_{TOPICN}_DRILL.pdf
@@ -294,13 +340,14 @@ Full archetype detection logic: `docs/ARCH_scope.md`.
 - `TEMPLATE_handwritten_cheatsheet.md` (closed-book vs open-book modes)
 - `TEMPLATE_coverage_audit.md` (4-quadrant matrix)
 - `TEMPLATE_index.md`
-- `AGENT_PROMPTS_LIBRARY.md` (11 prompts, 6-wave dispatch)
+- `AGENT_PROMPTS_LIBRARY.md` (12 prompts, 6-wave dispatch — Prompt 12 = primer-from-zero, NEW v0.6)
 
 ## Reference implementation
 
-Validated on **NTU SC4003 + SC4023** (with 3-round codex-student audit, scores
-6.2 → 7.5 → 8.1+). Built originally on SC4003 Intelligent Agents (AY2425) in
-April 2026; v0.5 audit gate added after SC4023 dry-run in May 2026.
+Validated on **NTU SC4003 + SC4023** (with codex-student audit gate +
+primer-from-zero gate). Built originally on SC4003 Intelligent Agents (AY2425)
+in April 2026; v0.5 audit gate added after SC4023 round-1 dry-run; v0.6 primer
+pack added after SC4023 round-2 audit (May 6 2026).
 
 The student's SC4003 exam-prep folder is the gold-standard reference at:
 `/Users/haoyangpang/Desktop/NTU study/Y4S2/SC4003 Intelligent Agents/exam-prep/`

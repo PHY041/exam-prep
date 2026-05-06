@@ -71,6 +71,8 @@ Wave 2 (per-paper):       [P2: Q&A breakdown] 🟡 (fan-out per paper)
                                     ↓
 Wave 3 (analysis):        [P3: frequency table] 🔴 → [P4: reused templates] 🔴
                                     ↓
+Wave 3.5 (primer):        [P12: primer-from-zero] 🟡 (NEW v0.6, blocks Wave-4)
+                                    ↓
 Wave 4 (pack generation): [P5: verbatim repeats]  🟢
                           [P6 × T: per-topic packs] 🟢 (fan-out per topic)
                           [P7 × N: PYP full answers] 🟢 (fan-out per paper)
@@ -81,7 +83,7 @@ Wave 6 (deliverables):    [P9: master plan] 🟢
                           [P10: cheatsheet] 🟢
 ```
 
-**Critical path:** P1 → P2 → P3 → P8 → P9. Everything else can sidecar.
+**Critical path:** P1 → P2 → P3 → P12 → P8 → P9. Everything else can sidecar.
 
 ---
 
@@ -603,6 +605,156 @@ then the handwritten copy is the mental model — what they should be able
 to reproduce on scratch paper in the first 5 minutes.
 
 Report back: word count of cheatsheet (target ≤1500 words to fit A4 by hand).
+```
+
+---
+
+## Prompt 12 — Concepts-from-zero primer pack writer (NEW v0.6)
+
+<!--
+Added v0.6 after SC4023 round-2 evidence (May 6 2026, T-1 day before exam):
+drill packs assume database/systems baseline; without this primer, students
+can't follow the drills and the Step 10.5 codex-student audit gate fails.
+Reference impl: SC4023 primer (7350w, 131KB PDF, 9 modules) at
+`~/Desktop/NTU study/Y4S2/SC4023 Big Data Management/exam-prep/ipad_topic_packs/00_PRIMER_FROM_ZERO.pdf`.
+-->
+
+### Operational spec
+
+| Field | Value |
+|-------|-------|
+| **When to dispatch** | After Wave-3 (frequency table + RED items extracted) and before Wave-4 drill packs are written. MANDATORY in v0.6 — drill packs reference primer concepts and assume the student has read it. Step 7.5 in the canonical workflow. |
+| **Input variables** | `{{COURSE_CODE}}`, `{{COURSE_TITLE}}`, `{{MODULES_INVENTORY}}`, `{{LECTURES_DIR}}`, `{{OUTPUT_DIR}}`, `{{PACKS_DIR}}`, `{{HOURS_TO_EXAM}}`, `{{STUDENT_BASELINE}}?` (default: smart undergrad, basic programming, no database/systems formal background) |
+| **Output path** | `{{PACKS_DIR}}/00_PRIMER_FROM_ZERO.md` (markdown source) + matching PDF after pandoc render |
+| **Time budget** | 25-45 min (single dispatch; not fan-out — one agent writes the whole document for tonal consistency) |
+| **Token budget** | ~50K input (lecture slides + module inventory) + ~25-35K output (5000-9000 words) |
+| **Length target** | 5000-9000 words depending on course breadth (~30-40 PDF pages at 11pt) |
+| **Composability** | 🟡 — single dispatch, blocks Wave-4 packs that may reference primer. Do not fan-out across modules; one agent owns the whole primer for voice consistency. |
+| **Failure modes** | `LENGTH-OVERRUN` (>10K words, primer becomes unreadable), `TEMPLATE-DRIFT` (missing module sections), `NARRATOR-POLLUTION` (forbidden phrases — see hard constraints below), `TERM-UNDEFINED` (term used before bold-defined on first use) |
+| **Retry** | If `LENGTH-OVERRUN`: re-dispatch with hard 9000-word ceiling, drop secondary modules first. If `NARRATOR-POLLUTION`: `bin/check_pollution.sh` flags → respawn with violator phrases echoed back. |
+
+### Prompt body
+
+```
+You are writing the FIRST file the student will read on the exam-prep iPad —
+the from-scratch concept primer for {{COURSE_CODE}} ({{COURSE_TITLE}}).
+
+## Audience profile
+
+- Smart undergrad, basic programming literacy
+- {{STUDENT_BASELINE}} (default: NO formal database/systems background)
+- T-{{HOURS_TO_EXAM}} hours to exam, will read this on iPad in linear order
+- Has the lecture slides but didn't internalize them; needs concepts rebuilt
+  from zero in plain English with concrete numerical examples
+
+If you would not bet money that this student understands a term, define it
+BOLD on first use. Do not assume any term has been seen before.
+
+## Modules to cover (one section each)
+
+{{MODULES_INVENTORY}}
+
+(One major topic from the course = one primer section. If the course has 7
+modules, the primer has 7 sections. Read {{LECTURES_DIR}} to map the
+canonical scope per module.)
+
+## Section structure (mandatory, identical per module)
+
+For each module, in this fixed order:
+
+1. **Why this exists** (~80-150 words)
+   - The real-world problem this concept solves
+   - What life looked like before this concept
+   - One concrete scenario where the student would reach for this tool
+
+2. **Mechanism in plain English** (~200-400 words)
+   - Step-by-step what actually happens, no jargon
+   - Bold-define every technical term on first use:
+     `**fence pointer**: a small in-memory index entry that points to the
+     starting key of each disk page so we can binary-search across pages
+     without reading them.`
+   - Use ASCII diagrams where geometry matters (e.g., LSM leveling vs
+     tiering, row vs column layout, B+tree shape). Plain ASCII, not
+     Unicode boxes — pandoc renders monospace cleanly that way.
+
+3. **Concrete example with numbers** (~150-300 words)
+   - Pick the smallest realistic input (10 keys, 4KB pages, etc.)
+   - Walk it through end-to-end with arithmetic shown
+   - Connect the result back to the "Why this exists"
+
+4. **How this connects to the drills** (~50-100 words)
+   - Name the topic packs that build on this section
+   - Name the past-paper questions where this concept appeared
+   - One sentence on what failure mode this section prevents
+
+## Hard constraints (auto-fail if violated; inherits v0.5 no-narrator + no-punt rules)
+
+### No-narrator rule
+The primer reads as a SETTLED textbook chapter, not a thinking process.
+FORBIDDEN PATTERNS (auto-fail; orchestrator respawns the agent):
+- "Wait —" / "Wait," / "Hmm," / "let me re-derive" / "let me redo"
+- "I'll commit to" / "I think" / "I realize" / "actually,"
+- "Tedious" / "see lecturer's full" / "see official solution"
+- "This gets messy" / "It is genuinely impossible" / "closest feasible"
+- "raise your hand" / "tell the lecturer"
+- Any prose signaling work-in-progress or mid-derivation
+
+### One canonical explanation rule
+Each concept gets exactly ONE explanation. Do NOT enumerate "alternative #1
+/ alternative #2 / actually here's a third way." Pick the cleanest pedagogical
+path and commit. If a concept has two genuine sub-cases (e.g., leveling vs
+tiering), present them side-by-side as a comparison, not as competing
+narrations.
+
+### Definition rule
+Every technical term gets bold-defined on first use:
+`**term**: definition in one sentence.`
+Do NOT use a term before its bold definition. The reader is reading linearly.
+
+### Style rule
+- Active voice, present tense
+- Short paragraphs (≤4 sentences typical)
+- ASCII diagrams over prose where geometry helps
+- Side-by-side comparison tables for trade-offs (e.g., row vs column store
+  for OLTP vs OLAP, leveling vs tiering for LSM tree)
+
+## Reference impl (gold standard)
+
+Use the SC4023 primer at
+`~/Desktop/NTU study/Y4S2/SC4023 Big Data Management/exam-prep/ipad_topic_packs/00_PRIMER_FROM_ZERO.pdf`
+as the gold-standard reference for this prompt:
+- 7350 words, 9 modules
+- Plain-English-first, every term bold-defined on first use
+- ASCII diagrams for leveling vs tiering side-by-side, row vs column layout
+- Side-by-side comparison tables for trade-offs
+- Closes with a "reading order" section that names the next 3 packs to read
+
+Mimic its tone, structure, and pedagogical density. Do NOT copy SC4023
+content into another course — copy the *shape*, not the *substance*.
+
+## Verification before declaring DONE
+
+1. Run `bin/check_pollution.sh {{PACKS_DIR}}/00_PRIMER_FROM_ZERO.md` →
+   must be CLEAN (no narrator/punt/multi-attempt patterns).
+2. Word count: 5000 ≤ count ≤ 9000.
+3. Every module from `{{MODULES_INVENTORY}}` has a section.
+4. Every section has the 4-part structure (Why / Mechanism / Example / Connects).
+5. Render PDF via pandoc + xelatex with the same flags as other packs in
+   {{PACKS_DIR}} (geometry margin=0.7in, fontsize=11pt, mainfont=Helvetica).
+
+## Output
+
+- Markdown: `{{PACKS_DIR}}/00_PRIMER_FROM_ZERO.md`
+- PDF: `{{PACKS_DIR}}/00_PRIMER_FROM_ZERO.pdf`
+
+## Report back
+
+(a) Word count
+(b) Modules covered (by name)
+(c) Number of bold-definitions introduced
+(d) Number of ASCII diagrams
+(e) Pollution check result (CLEAN / FLAGGED + count)
+(f) PDF render result (pages, KB, success/fail)
 ```
 
 ---

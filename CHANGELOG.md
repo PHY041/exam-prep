@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.6.0 — May 6, 2026
+
+### Why this release exists
+
+SC4023 round-2 evidence (May 6 2026, 1 day before exam): student opened the v0.5 drill packs and got stuck at Get cost / fence pointer / Bloom filter mechanics. The packs assumed database/systems baseline knowledge the student didn't have. v0.5's codex-audit gate would have caught this *eventually*, but only after expensive fix-loops. v0.6 adds a primer-from-zero pack as MANDATORY first output, baking the lesson into the workflow.
+
+The Chinese alias `临时抱佛脚` (lit. "hugging Buddha's feet at the last minute" = idiom for cramming) is now official — it captures the skill's actual use case.
+
+### Added
+
+- **Workflow Step 7.5** — primer pack generation, MANDATORY before any drill pack. Output: `00_PRIMER_FROM_ZERO.md` (5000-9000 words covering all course concepts from first principles).
+- **AGENT_PROMPTS_LIBRARY.md Prompt 12** — primer-writer prompt template with audience profile, section structure, hard constraints, and SC4023 reference impl citation.
+- **临时抱佛脚 alias** added to SKILL.md frontmatter aliases list. `/临时抱佛脚` triggers the skill identically to `/exam-prep`.
+- **TEMPLATE_index.md** updated to list primer pack as FIRST entry in study order.
+
+### Changed
+
+- README.md badges, validation claims, changelog table updated for v0.6
+- SKILL.md workflow now has 11.5 steps (was 11): Step 7.5 inserted between Step 7 (per-topic drill packs) and Step 8 (PYP full-answer packs)
+
+### Reference implementation
+
+SC4023 primer at `~/Desktop/NTU study/Y4S2/SC4023 Big Data Management/exam-prep/ipad_topic_packs/00_PRIMER_FROM_ZERO.pdf`:
+- 7350 words, 131KB PDF, ~30-40 pages
+- 9 modules: Big Data 5Vs / Disk mechanics / Memory hierarchy + cache / Sorting + external sort / Row vs Column stores / MapReduce / NoSQL + KV / LSM tree (centerpiece, ~30% of doc) / Reading order
+- ASCII diagrams for leveling vs tiering side-by-side, row vs column layout
+- Bold-defined every term on first use
+- Pollution check: ✅ CLEAN
+
+### Case study (SC4023 round-2)
+
+Without primer (v0.5): student stuck at LSM Get cost section, asking "what is I/O?", "what is fence pointer?", "what does flush mean?". Manual hand-explained 4 separate concepts before student could continue.
+
+With primer (v0.6 default): student reads 90-120 min primer first, then drill packs become readable. Eliminates the "wall" effect.
+
+### Cost
+
+No change from v0.5 base cost. Primer generation adds ~$0.50-$1.00 to invocation cost (one extra agent call for ~7000 words). Total still ~$1.80-$5.50 per invocation.
+
+---
+
 ## v0.5.0 — May 4, 2026
 
 ### Why this release exists
